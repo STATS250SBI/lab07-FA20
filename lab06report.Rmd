@@ -1,0 +1,346 @@
+---
+title: "STATS 250 Lab 6"
+author: "Lab Dream Team"
+date: "Week of 10/5/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("auxiliary.R")
+source("plotCoinFlip.R")
+```
+
+## Learning Objectives
+
+### Statistical Learning Objectives
+1. Explore sample-to-sample variation
+1. Investigate probability using long-run proportions
+
+### R Learning Objectives
+1. Learn about reproducible randomness by "setting seeds"
+1. Functions within functions: `table(sample())`
+1. Line plots in R
+
+### Functions covered in this lab
+1. `set.seed()`
+1. `sample()`
+1. `rep()`
+
+### Weekly Advice
+This week, we're learning more about R "graphics" (e.g., making plots and graphs). The trick to working with graphics in R is to remember these points:
+
+1. R "draws" graphs like ink on paper. You can create a graph (using, e.g., `plot()`), then add things to it by using other functions to draw on top of the graph. But because R draws in "ink", there's no eraser! The way to clean things up is to make the graph again.
+1. The way to get a graphic you like is by trying stuff and adjusting. **Don't be afraid to play around!**
+1. Use R's built-in help for "graphical parameters"! In the R console, type `?par` then hit enter/return.
+
+**Make sure you knit your document before submitting!**
+
+<hr />
+
+## Lab Tutorial
+
+### Vectors
+
+Remember that a *vector* in R is just a way to store a bunch of things together, like a pill counter. We saw last week that we can create vectors of consecutive integers using `:`, like `1:6`. 
+
+We can make other types of vectors using the `c()` function. `c` here stands for **c**ombine. Here's a vector of non-consecutive numbers, for example:
+
+```{r vectorExample}
+x <- c(1, 72.15, -4)
+x
+```
+
+We're going to see this `c()` function pop up *a lot*, so know that when you see it, it's making a *vector*. 
+
+### The `stringsAsFactors` Argument to `read.csv()`
+
+Here's our penguins again.
+
+```{r penguins}
+penguins <- read.csv("https://raw.githubusercontent.com/STATS250SBI/palmerpenguins/master/inst/extdata/penguins_NArm.csv", stringsAsFactors = T)
+```
+
+Something that's important to note when we read in the data this time is that we gave `read.csv()` an extra argument called `stringsAsFactors` and we set it to `T` (`T` stands for `TRUE`). This argument tells `read.csv()` that it should treat data that looks like text as a categorical variable. Sometimes this is what you want, sometimes it's not; the default in R is `stringsAsFactors = FALSE`, so it doesn't treat text-like data as categorical by default.
+
+In STATS 250, text-like data will almost always be a categorical variable, so we'll be setting `stringsAsFactors = TRUE` quite often. Here, we're doing it so we can more easily customize scatterplots below.
+
+### LINE PLOTS
+
+Let's make a scatterplot of penguin body mass vs. bill "depth":
+
+```{r massDepthPlot}
+plot(replicate(100, table(coinFlip(10))[1]), type = "l",
+     lwd = 2, lty = 3, col = "blue")
+```
+
+You should notice a couple of things about what we just did:
+
+1. We used "formula syntax" in the `plot()` code: we specified the response variable (y) and the explanatory variable (x) by typing `y ~ x` and then providing the `data` argument so R would know where to look for those variables. Remember that we can read the tilde (`~`) as "by", or "versus", so `body_mass_g ~ bill_depth_mm` would be read "body mass g versus bill depth mm". We *always* say "[y variable] vs. [x variable]". 
+1. There's some pretty obvious clustering happening in this plot! **Take a second to think of an explanation for this.**
+
+One possible reason for the clustering might be the fact that our data set contains information on three different penguin species. It might be nice to identify which points belong to each species. To do this, we'll use the `col` argument to plot, but in a tricky way.
+
+```{r speciesColor}
+plot(bill_depth_mm ~ body_mass_g, 
+     data = penguins,
+     main = "Scatterplot of Penguin Body Mass vs. Bill Depth",
+     xlab = "Bill Depth (mm)",
+     ylab = "Body Mass (g)",
+     col = c("midnightblue", "brown1", "mediumseagreen")[penguins$species])
+```
+
+So it looks like one species is very different from the other two in terms of the relationship between bill depth and body mass! It seems like they have relatively deep bills but are also lighter than the other species. How can we tell which color corresponds to which species?
+
+R chooses colors from the *vector* of options we give it -- `c("midnightblue", "brown1", "mediumseagreen")` is a vector of color names, just like 1:6 is a vector of consecutive integers from last week -- in the order of the levels of that categorical variable `penguins$species`. Remember that R orders these levels *alphabetically*! We can use the `levels()` function to see this order:
+
+```{r speciesLevels}
+levels(penguins$species)
+```
+
+The "medium sea green" dots are coming from the third level (since `mediumseagreen` is the third "element" of that colors vector), so the green dots are Gentoo penguins.
+
+Let's make a legend (or key) so people can better understand our scatterplot.
+
+```{r legend}
+# Make the plot again
+plot(bill_depth_mm ~ body_mass_g, 
+     data = penguins,
+     main = "Scatterplot of Penguin Body Mass vs. Bill Depth",
+     xlab = "Bill Depth (mm)",
+     ylab = "Body Mass (g)",
+     col = c("midnightblue", "brown1", "mediumseagreen")[penguins$species])
+
+# Add a legend
+legend("topright", 
+       legend = levels(penguins$species),
+       col = c("midnightblue", "brown1", "mediumseagreen"),
+       pch = 1,
+       title = "Species")
+```
+
+The first argument to legend is a position -- it's where you want the legend to go on the plot. The easiest way to set the position is to choose one of "`bottomright`", "`bottom`", "`bottomleft`", "`left`", "`topleft`", "`top`", "`topright`", "`right`" or "`center`". 
+
+The next argument is called "`legend`" and is the words you want to go in the legend. Here, we want our legend to identify the "levels" of the `species` variable in `penguins`, so we'll say `legend = levels(penguins$species)`. Then we give our vector of colors to `col`.
+
+The last (non-obviously-named) argument we provide to `legend()` is called `pch`, which stands for **P**lotting **CH**aracter. Changing the `pch` argument changes what the points look like in our plot. Since we didn't specify `pch` in our plot, it gave us open circles (`pch = 1`).
+
+If we want, we could make the plot again, this time giving each species its own **p**lotting **ch**aracter. You can see the possible options for `pch` using help: type `?points` in the console, hit enter/return, then scroll down.
+
+```{r pchExample}
+# Make the plot again
+plot(bill_depth_mm ~ body_mass_g, 
+     data = penguins,
+     main = "Scatterplot of Penguin Body Mass vs. Bill Depth",
+     xlab = "Bill Depth (mm)",
+     ylab = "Body Mass (g)",
+     col = c("midnightblue", "brown1", "mediumseagreen")[penguins$species],
+     pch = c(0, 1, 2)[penguins$species])
+
+# Add a legend
+legend("topright", 
+       legend = levels(penguins$species),
+       col = c("midnightblue", "brown1", "mediumseagreen"),
+       pch = c(0, 1, 2),
+       title = "Species")
+```
+
+### Correlation Matrices
+
+Let's go back to the scatterplot we made last week and update it to use the `~` operator.
+
+```{r lengthMassPlot}
+plot(body_mass_g ~ bill_length_mm,
+     data = penguins,
+     main = "Scatterplot of Penguin Body Mass versus Bill Length",
+     xlab = "Bill Length (mm)",
+     ylab = "Body Mass in (g)")
+```
+
+Last week, we said this was a moderately-strong linear relationship with no obvious outliers or clustering, and computed the correlation between the two variables:
+
+```{r lengthMassCor}
+cor(penguins$bill_length_mm, penguins$body_mass_g)
+```
+
+If we wanted to consider the correlation between multiple quantitative variables, we could use `cor()` on every pair of them, but that's tedious. Instead, we'll compute a correlation *matrix*. 
+
+To do this, first we should subset the `penguins` data to only consider numeric variables that are interesting to look at. Those variables are `bill_length_mm`, `bill_depth_mm`, `flipper_length_mm`, and `body_mass_g` (`year` is numeric, but is not particularly of interest as it is the year the data was collected; feel free to add it in if you would like). To make this subset, we'll use the `subset()` function and the `select` argument. `select` is a vector of variable names in `penguins`. Then, we can find the correlation of this subset that we will call `numericPenguins`.
+
+```{r correlationMatrix}
+numericPenguins <- subset(penguins, select = c("bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"))
+cor(numericPenguins)
+```
+
+Each "entry" in the correlation matrix is the correlation between the variables labeling that entry's row and column. So for example, the correlation between bill depth and bill length is about -0.229. 
+
+### Linear Regression
+
+We've actually already discussed most of what we need to perform linear regression in R, so let's jump right into it.
+
+We're going to perform a linear regression of body mass on bill length. This means we're going to use the bill length as the explanatory variable (x) and body mass as the response variable (y).
+We'll use the function `lm()`, and provide it a formula (`y ~ x`) and a `data` argument. We'll store that as an object called `reg1`. Then, to get detailed results, we'll use the `summary()` function.
+
+```{r lm1}
+reg1 <- lm(body_mass_g ~ bill_length_mm, data = penguins)
+summary(reg1)
+```
+
+As we read this table, the first two lines are just the code we typed in being displayed. The next piece dealing with *residuals* can be skipped over. We want the piece dealing with the **coefficients**. In the *coefficients* portion of the output, there are two rows of information with four columns. The column we will be dealing with in Lab 5 is the **Estimate** column. 
+
+The first row of information is called the **`(Intercept)`**. This represents information about the vertical (y) intercept. So if we go to the `Estimate` column in the `(Intercept)` row, we will get the value of the vertical (y) intercept for the least-squares regression line. Notice that the next row of information is called **`bill_length_mm`**, which is our explanatory (x) variable. This is a great way to verify that your logic of `y ~ x` was done correctly! This second row will always contain the name of the explanatory variable you chose. If we go to the `Estimate` column of the `bill_length_mm` row, we will get the value of the slope for the least-squares regression line.
+
+The next line has a value called the **residual standard error**, and this value is known as $s$. Then we will look at the line of output that has the **multiple R-squared** value -- *ignore the adjusted R-squared value*. 
+
+So again, the values we want to find from this output: 1) the vertical intercept of the least-squares regresison line from our sample data; 2) the slope of the least-squares regression line from our sample data; 3) the residual standard error, 4) the multiple r-squared value which is known as the *coefficient of determination*. You can see your lecture notes page 11 to learn more about this $R^2$ value.
+
+Run the chunk. Did you get a vertical intercept of 388.845, a slope of 86.792, a residual standard error of 651.4, and a coefficient of determination of 0.3475?
+
+We can also get more details about the regression through an ANOVA table, which we can compute using by giving the "regression model object" (`reg1`) to the `anova()` function:
+
+```{r anova}
+anova(reg1)
+```
+
+This table gives us information that will help us compute some important values in regression. Notice that we have two rows of information. The first row is called `bill_length_mm`, which is the name of our explanatory (x) variable and represents our **linear model (M)**. The second row is called `Residuals`, and recall that a residual is the error on the response variable (so $e = y - \hat{y}$). We represent this as **Error (R)**. Next note the column names, such as `Sum Sq` and `Mean Sq`. 
+
+In the `Sum Sq` column, the first value of 74792533 is known as the *SSM* and the second value of 140467133 is known as the *SSE*. How could we find *SST* which is the total of the `Sum Sq` columns? Add up 74792533 and 140467133 to get 215259666. 
+
+In the `Mean Sq` column, the first value of 74792533 is known as the *MSM* value and the second value of 424372 is known as the *MSE*. 
+
+We can use these values to calculate a few values, most notably the coefficient of determination $R^2$ and $s$. You can read more about these values on page 10 and 11 of your lecture notes.
+
+$R^2$ can be found by taking *SSM / SST*, so here, taking *74792533 / 215259666*. Verify that you got the same value from earlier. $s$ can be found by taking the square root of *MSE*. Verify that you got the same value from earlier by taking $\sqrt{424372}$.
+
+Then, when we're done with all of that, we can add the estimated regression line to our scatterplot by giving the model object to the `abline()` function.
+
+
+```{r lengthMass-Regression-Plot}
+plot(penguins$bill_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Penguin Body Mass versus Bill Length",
+     xlab = "Bill Length (mm)",
+     ylab = "Body Mass in (g)")
+abline(reg1)
+```
+
+## Try It!
+Depending on your instruction method (in person, synchronous remote, asynchronous remote), complete the following exercises collaboratively. 
+
+1. **In person:** Form groups of 2-4 with those around you (maintaining physical distance). Your instructor will provide additional details.
+1. **Synchronous remote:** You will be placed in a Zoom breakout room to work together in small groups. 
+1. **Asynchronous remote:** Join a Piazza lab group for asynchronous collaboration.
+
+**Collaborators:** If applicable, replace this text with the names of anyone you collaborated with on this project.
+
+
+>**1.** In order to make your results reproducible when you knit (so you can compare your answers in the knitted document to your peers'), **set the seed to 22**.
+
+```{r tryIt1, error = T}
+# Replace this comment with code required for Try It 1. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+
+> **2.** Using `c()` and `rep()` create a vector containing the word "cat" 35 times and the word "dog" 29 times. Then take a sample of size 20 from that vector with replacement. Show a table of your results. If you get stuck, use the help function in R: type, e.g., `?rep` into the console and hit enter/return.
+
+```{r tryIt2, error = T}
+# Replace this comment with code required for Try It 2. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+Replace this text with your answer to Try It 2.
+
+> **3.** Use the `flipCoin()` function we've created for you to flip a mystery coin 10 times. `flipCoin()` takes one argument called `n`, which is the number of times you want to flip the coin. 
+
+```{r tryIt3, error = T}
+# Replace this comment with code required for Try It 3. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+
+
+```
+
+> **4.** Here's the code from the line plot example earlier. Modify it so that you plot the results of 20 trials of 100 coin flips. Use the `abline()` function to draw a **blue** horizontal line where you think the average number of heads will be if the coin is unbiased.
+
+
+```{r tryIt4, error = T}
+# Replace this comment with code required for Try It 4. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+plot(replicate(100, table(coinFlip(10))[1]), type = "l", ylim = c(0, 100))
+
+```
+
+Replace this text with your answer to Try It 4.
+
+> **5.** Use the `anova()` function to produce the ANOVA table for the model, and use it to check the value of $R^2$ that you found in Try It 4. Show your work the best you can.
+
+```{r tryIt5, error = T}
+# Replace this comment with code required for Try It 5. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+Replace this text with your answers to Try It 5.
+
+> **6.** In Try It 3, you made a scatterplot of two variables. The `coffee` data contains a categorical variable called `color`, which represents the color of the coffee bean (before roasting; coffee's not brown until it's roasted!). Make a frequency table of this variable, then remake your scatterplot from Try It 3, this time coloring the points according to the value of `color`. 
+
+```{r tryIt6, error = T}
+# Replace this comment with code required for Try It 6. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+
+## Dive Deeper
+In the Try It, you played around a little with data about coffee ratings. Now, we're going to have you dive a little deeper.
+
+> **1.** How would you interpret the estimate of the slope coefficient we found in Try It 4? Speculate on the real-world impact of this estimate.
+
+Replace this text with your written answer for Dive Deeper 1
+
+> **2.** How would you interpret the value of $R^2$ we found in Try It 4? Why do we care about this?
+
+Replace this text with your written answer to Dive Deeper 2.
+
+> **3.** In your scatterplot from Try It 3, you should notice that the data seem to be in "strips" -- vertical stacks of data points. Speculate on why this is happening.
+
+Replace this text with your written answer to Dive Deeper 3.
+
+```{r diveDeeper3}
+# Replace this comment with code required for Dive Deeper 3. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+> **4.** Using your scatterplot from Try It 6, does coffee bean color appear to be related to the coffee's total cup points and balance? Why or why not?
+
+Replace this text with your written answer to Dive Deeper 4.
+
+> **5.** In late June, this [image](https://twitter.com/AmihaiGlazer/status/1277769775855235072?s=20) made the rounds on statistics Twitter (yes, that's a thing). It's a plot of per-capita (read: population-adjusted) mortality rate for a particular disease versus average physician salary in each state. The caption of the image was "States where physicians are highly paid have lower mortality per capita." Do you agree with that conclusion based on the plot? Why or why not?
+
+![](regression_tweet.jpg)
+
+Replace this text with your written answer to Dive Deeper 5.
+
+## Wrap-Up and Submission
+
+At the top of the document, make sure you've changed the `author` field to your name (in quotes!). If you'd like, change the date as well.
+
+**When you've finished the lab, click the Knit button one last time.**
+
+
+### Submission instructions
+#### If you're using RStudio Cloud
+1. In the Files pane, check the box next to `lab05report.html`.
+2. Click More > Export...
+3. Click Download and save the file on your computer in a folder you'll remember and be able to find later. You can just call the file `lab05report.html` or whatever else you'd like (as  long as you remember what you called it).
+
+#### If you're using RStudio installed on your computer
+1. locate the `lab05report.html` file on your computer. The file will be saved in the location indicated at the top of the files pane.
+
+#### Submission to Canvas
+
+1. Click the "Assignments" panel on the left side of the page. Scroll to find "Lab 5", and open the assignment. Click "Submit Assignment". 
+2. Towards the bottom of the page, you'll be able to choose `lab05report.html` from the folder you saved it in from RStudio Cloud or noted if you're using RStudio Desktop. **You will only be able to upload a .html file -- do not upload any other file type.**
+3. Click "Submit Assignment". You're done! 
