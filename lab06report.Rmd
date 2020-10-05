@@ -194,7 +194,7 @@ plot(sapply(1:300, sixSidedDieRoll),
      xlab = "Number of Six-Sided Dice",
      ylab = "Average",
      type = "l",
-     lty = 4)
+     lty = "dotdash")
 ```
 
 ## Try It!
@@ -265,11 +265,11 @@ Replace this text with your prediction: how will one simulation of 10,000 coin f
 
 Replace this text with your thoughts on how your simulation turned out.
 
-> **3.** In the lecture notes for section 2.4, we repeated the simulation of flipping a coin 16 times twice. The first time, our 16 coin flips were repeated 100 times. The second time, our 16 coin flips were repeated 1000 times. For your simulation in Dive Deeper 4, how many times will you run it? 100 times? 1000 times? Another number of times? Explain your reasoning.
+> **3.** In the lecture notes for section 2.4, we had a scenario involving Buzz choosing the correct button. We decided to simulate Buzz's selections using a (fair) coin flip where heads represents a correct guess and tails represents an incorrect guess. Think of a scenario in real life where you could also use a repeated (fair) coin flip as a simulation. Clearly define heads and tails. 
 
 Replace this text with your written answer to Dive Deeper 3.
 
-> **4.** In the lecture notes for section 2.4, we had a scenario involving Buzz choosing the correct button. We decided to simulate Buzz's selections using a (fair) coin flip where heads represents a correct guess and tails represents an incorrect guess. Think of a scenario in real life where you could also use a repeated (fair) coin flip as a simulation. Cleary define heads and tails. 
+> **4.** In the lecture notes for section 2.4, we repeated the simulation of flipping a coin 16 times twice. The first time, our 16 coin flips were repeated 100 times. The second time, our 16 coin flips were repeated 1000 times. For your simulation in Dive Deeper 3, how many times will you run it? 100 times? 1000 times? Another number of times? Explain your reasoning.
 
 Replace this text with your written answer to Dive Deeper 4.
 
