@@ -1,0 +1,253 @@
+---
+title: "STATS 250 Lab 7"
+author: "Lab Dream Team"
+date: "Week of 10/12/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("sample_two_groups.R")
+```
+
+## Learning Objectives
+
+### Statistical Learning Objectives
+1. Get experience with randomization under an independence model
+1. Explore hypothesis testing and p-values
+
+### R Learning Objectives
+1. Learn how to perform simulations under an independence model
+
+### Functions covered in this lab
+1. `replicate()`
+
+### Weekly Advice
+This is exam review: it will benefit you to do this before the exam and devote your full attention to it. We promise.
+
+**MAKE SURE YOU RUN THE `setup` CHUNK ON LINE 13**
+
+## Lab Tutorial
+
+This week's tutorial will be based on an example on page 66 of *Introductory Statistics with Randomization and Simulation* (our textbook). There are blank chunks throughout that we'll fill in together.
+
+How rational and consistent is the behavior of the typical American college student? We'll explore whether college student consumers always consider an obvious fact: money not spent now can be spent later.
+
+In particular, we are interested in whether reminding students about this well-known fact about money causes them to be a little thriftier. A skeptic might think that such a reminder would have no impact. We can summarize these two perspectives using the null and alternative hypothesis framework.
+
+### Setting up Hypotheses
+
+Let's set up our hypotheses:
+
+- $H_0$: 
+- $H_A$:
+
+### Study
+
+150 students were recruited for the study, and each was given the following statement:
+Imagine that you have been saving some extra money on the side to make some purchases, and on your most recent visit to the video store you come across a special sale on a new video. This video is one with your favorite actor or actress, and is of your favorite genre. This particular video that you are considering is one you have been thinking about buying for a long time. It is available for a special sale price of $14.99. What would you do in this situation?
+
+Half of the 150 students were randomized into a control group and were given the following two options:
+
+- (A) Buy this entertaining video
+- (B) Not buy this entertaining video
+
+The remaining 75 students were placed in the treatment group, and they saw a slightly modified option (B):
+
+- (A) Buy this entertaining video
+- (B) Not buy this entertaining video. Keep the $14.99 for other purchases.
+
+Let's read in the data from the study. It's in a .csv filed called `dvd.csv`. Read it into R, and call it `dvd`.
+
+```{r dvdData, error = T}
+
+```
+
+Let's explore the data by making a frequency table. This will provide a summary of the study results.
+
+```{r dvdTable}
+
+```
+
+Let's make a table of row proportions as it might be easier to review the results. To get a "row proportion", divide each number in the table by the total number of observations *in that row*.
+
+|               | buy DVD | not buy DVD | Total |
+|:-------------:|:-------:|:-----------:|:-----:|
+| **control**   |         |             | 1.000 |
+| **treatment** |         |             | 1.000 |
+| **Total**     |         |             | 1.000 |
+
+Let's use the table of row proportions to get $\hat{p}_{\mathrm{trmt}} - \hat{p}_{\mathrm{ctrl}}$ (p-hat_treatment - p-hat_control):
+
+$$\hat{p}_{\mathrm{trmt}} - \hat{p}_{\mathrm{ctrl}} = ANSWER$$
+
+Now the big question: Is this result statistically significant? Is this difference between the two groups so prominent that it is unlikely to have occurred from chance alone?
+
+### Simulation!
+
+In order to figure this out, we want to understand what we might see out there in many simulations.
+
+We've made a function for you that will randomly shuffle the "decisions" (buy vs. not buy the DVD) between treatment and control groups.
+
+Before we do that, let's make sure we can reproduce our results by setting the seed for the random number generator.
+
+```{r setSeed}
+set.seed(106) # we just picked this number, it's not special.
+```
+
+Our shuffling function is called `sample_two_groups()` and works like this:
+
+```{r sampleExample, error =T}
+shuffle1 <- sample_two_groups(dvd)
+table(shuffle1)
+```
+
+`sample_two_groups()` takes two arguments, each of which are the variables in the data which represent the treatment assignment and the "response" (decision).
+
+Here's the table of row proportions, using another helper function we wrote for you (this doesn't actually exist in R by itself):
+
+```{r rowPropShuffle1, error = T}
+rowTable(shuffle1)
+```
+
+We also wrote you some code to get the difference in estimated proportions ($\hat{p}_{\mathrm{trmt}} - \hat{p}_{\mathrm{ctrl}}$)
+
+```{r phat-difference, error = T}
+rt <- rowTable(shuffle1) # make the table again, this time assigning it a name
+
+# Get the number in the 2nd row and 1st column of the table (treatment + buy)
+# and subtract the number in the first row and first column (control + buy).
+# Remember that square brackets [] "select" elements and that data are Really
+# Cool (so the index goes Row then Column).
+rt[2, 1] - rt[1, 1] 
+```
+
+### The `replicate()` function
+Simulation involves doing the same thing over and over again and getting slightly different results thanks to randomness. We can do this using the `replicate()` function. `replicate()` sounds similar to `rep()` from last week, but is quite different. `rep()` means `rep`eat: it copies and pastes the results. `replicate()`, on the other hand, re-runs code and compiles new results each time. Watch this:
+
+```{r repExample, error = T}
+rep(sample(1:20, size = 5), 3)
+```
+
+```{r replicateExample, error = T}
+replicate(3, sample(1:20, size = 5))
+```
+
+Notice that `replicate()` looks a little different than `rep()`: the first argument is the number of times you want to do something, and the second argument is the thing you want to do over and over again. *This is the opposite of the order of arguments in `rep()`: be careful!*
+
+Let's modify the code below to run 1000 simulations.
+
+```{r dvdSims, error = T}
+pHatDiffs <- replicate(2, {
+  shuffle <- sample_two_groups(dvd)
+  shuffle_table <- rowTable(shuffle)
+  shuffle_table[2, 1] - shuffle_table[1, 1] # p-hat_treatment minus p-hat_control
+})
+```
+
+Now we'd like to visualize our results, so we'll make a histogram. Let's also add a vertical line at our observed difference using the `v` argument to `abline()` (`v` for `v`ertical). 
+
+```{r dvdSimsHist, error = T}
+
+```
+
+If there was no treatment effect, then we'd only observe a difference (treatment - control) of -20% or less about 0.7% of the time. This is so rare, that it provides strong evidence that there is a treatment effect.
+
+## Try It!
+Depending on your instruction method (in person, synchronous remote, asynchronous remote), complete the following exercises collaboratively. 
+
+1. **In person:** Form groups of 2-4 with those around you (maintaining physical distance). Your instructor will provide additional details.
+1. **Synchronous remote:** You will be placed in a Zoom breakout room to work together in small groups. 
+1. **Asynchronous remote:** Join a Piazza lab group for asynchronous collaboration.
+
+**Collaborators:** If applicable, replace this text with the names of anyone you collaborated with on this project.
+
+An experiment conducted by the MythBusters, a science entertainment TV program on the Discovery Channel, tested if a person can be subconsciously influenced into yawning if another person near them yawns. 
+
+>**1.** 50 people were randomly assigned to two groups: 34 to a group where a person near them yawned (treatment) and 16 to a group where there wasn't a person yawning near them (control). A simulation was conducted to understand the distribution of the test statistic under the assumption of independence: having someone yawn near another person has no influence on if the other person will yawn. What are the hypotheses for this test?
+
+- $H_0$: replace this text with your null hypothesis
+- $H_A$: replace this text with your alternative hypothesis
+
+
+> **2.** The following table shows the results of this experiment.
+
+|             | Treatment | Control | Total |
+|:-----------:|:---------:|:-------:|:-----:|
+| **Yawn**    |    10     |     4   |   14  |
+| **Not Yawn**|    24     |    12   |   36  |
+| **Total**   |    34     |    16   |   50  |
+
+> Calculate the observed difference between the yawning rates under the two scenarios.
+
+Replace this text with your work and your answer to Try It 2.
+
+> **3.** Let's read in the data from this study. It's in a .csv filed called `yawning.csv`. Read it into R, and call it `yawning`.
+
+```{r tryIt3, error = T}
+# Replace this comment with code required for Try It 3. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+> **4.** Fill in the blanks: In order to conduct the simulation, a researcher wrote ______(a)______ on ______(b)______ index cards and ______(c)______ on ______(d)______ index cards to indicate whether or not a person yawned. Then he shuffled the cards and dealt them into two groups of size ______(e)______ for treatment and size ______(f)______ for control. He counted how many participants in each simulated group yawned in an apparent response to a nearby yawning person, and calculated the difference between the simulated proportions of yawning (treatment - control). 
+
+Replace this text with your answer to Try It 4.
+
+> **5.** "Shuffle" the "cards" located in `yawning` by using the `sample_two_groups()` function. Then make a table of your results. How many people did yawn in the treatment group in your simulation? How many people did yawn in the control group in your simulation? What is the observed difference in rates?
+
+```{r tryIt5}
+# Replace this comment with code required for Try It 5. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
+
+Replace this text with your answer to Try It 5.
+
+> **60** Using the figure below, estimate the p-value and determine the conclusion of the hypothesis test.
+
+Replace this text with your answer to Try It 6.
+
+## Dive Deeper
+
+> **1.** In the yawning exercise, there was the option of selecting a one-sided or a two-sided test. Which would you recommend (or which did you choose)? Justify your answer in 1 to 3 sentences. 
+
+Replace this text with your written answer for Dive Deeper 1.
+
+> **2.** A researcher on the TV program wrote the following statement: "The p-value found is the chance that this difference in proportions is due to chance rather than an effect of the treatment." This statement is not correct, as the difference is either due to chance or not (probability 0% or 100%). Correct the statement of the p-value for the researcher.
+
+Replace this text with your written answer for Dive Deeper 2.
+
+> **3.** A fellow statistics student from a competing school says to you: "If our results are not unusual, then we can know that the alternative hypothesis is completely false." Is this correct logic? Explain your reasoning.
+
+Replace this text with your written answer to Dive Deeper 3.
+
+> **4.** This fellow statistics student has another statement to run by you: "If our results are not unusual, then we can know that the null hypothesis is in fact true." Is this the correct logic? Explain your reasoning.
+
+Replace this text with your written answer to Dive Deeper 4.
+
+
+## Wrap-Up and Submission
+
+At the top of the document, make sure you've changed the `author` field to your name (in quotes!). If you'd like, change the date as well.
+
+**When you've finished the lab, click the Knit button one last time.**
+
+
+### Submission instructions
+#### If you're using RStudio Cloud
+1. In the Files pane, check the box next to `lab07report.html`.
+2. Click More > Export...
+3. Click Download and save the file on your computer in a folder you'll remember and be able to find later. You can just call the file `lab07report.html` or whatever else you'd like (as  long as you remember what you called it).
+
+#### If you're using RStudio installed on your computer
+1. locate the `lab06report.html` file on your computer. The file will be saved in the location indicated at the top of the files pane.
+
+#### Submission to Canvas
+
+1. Click the "Assignments" panel on the left side of the page. Scroll to find "Lab 7", and open the assignment. Click "Submit Assignment". 
+2. Towards the bottom of the page, you'll be able to choose `lab07report.html` from the folder you saved it in from RStudio Cloud or noted if you're using RStudio Desktop. **You will only be able to upload a .html file -- do not upload any other file type.**
+3. Click "Submit Assignment". You're done! 
