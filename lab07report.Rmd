@@ -38,14 +38,7 @@ This week's tutorial will be based on an example on page 66 of *Introductory Sta
 
 How rational and consistent is the behavior of the typical American college student? We'll explore whether college student consumers always consider an obvious fact: money not spent now can be spent later.
 
-In particular, we are interested in whether reminding students about this well-known fact about money causes them to be a little thriftier. A skeptic might think that such a reminder would have no impact. We can summarize these two perspectives using the null and alternative hypothesis framework.
-
-### Setting up Hypotheses
-
-Let's set up our hypotheses:
-
-- $H_0$: 
-- $H_A$:
+In particular, we are interested in whether reminding students about this well-known fact about money causes them to be a little thriftier.
 
 ### Study
 
@@ -61,6 +54,18 @@ The remaining 75 students were placed in the treatment group, and they saw a sli
 
 - (A) Buy this entertaining video
 - (B) Not buy this entertaining video. Keep the $14.99 for other purchases.
+
+### Setting up Hypotheses
+
+A skeptic might think that the reminder would have no impact, whereas others might believe that the reminder will work. We can summarize these two perspectives using the null and alternative hypothesis framework.
+
+Let's set up our hypotheses:
+
+- $H_0$: 
+- $H_A$:
+
+
+### Data
 
 Let's read in the data from the study. It's in a .csv filed called `dvd.csv`. Read it into R, and call it `dvd`.
 
@@ -81,6 +86,8 @@ Let's make a table of row proportions as it might be easier to review the result
 | **control**   |         |             | 1.000 |
 | **treatment** |         |             | 1.000 |
 | **Total**     |         |             | 1.000 |
+
+We will define a **success** in this study as a student who chooses to **NOT** buy the DVD. Then the value of interest is the change in DVD purchase rates that results by giving the students the reminder. 
 
 Let's use the table of row proportions to get $\hat{p}_{\mathrm{trmt}} - \hat{p}_{\mathrm{ctrl}}$ (p-hat_treatment - p-hat_control):
 
@@ -120,11 +127,11 @@ We also wrote you some code to get the difference in estimated proportions ($\ha
 ```{r phat-difference, error = T}
 rt <- rowTable(shuffle1) # make the table again, this time assigning it a name
 
-# Get the number in the 2nd row and 1st column of the table (treatment + buy)
-# and subtract the number in the first row and first column (control + buy).
+# Get the number in the 2nd row and 2nd column of the table (treatment + not buy)
+# and subtract the number in the 1st and 2nd column (control + not buy).
 # Remember that square brackets [] "select" elements and that data are Really
 # Cool (so the index goes Row then Column).
-rt[2, 1] - rt[1, 1] 
+rt[2, 2] - rt[1, 2] 
 ```
 
 ### The `replicate()` function
@@ -146,7 +153,7 @@ Let's modify the code below to run 1000 simulations.
 pHatDiffs <- replicate(2, {
   shuffle <- sample_two_groups(dvd)
   shuffle_table <- rowTable(shuffle)
-  shuffle_table[2, 1] - shuffle_table[1, 1] # p-hat_treatment minus p-hat_control
+  shuffle_table[2, 2] - shuffle_table[1, 2] # p-hat_treatment minus p-hat_control
 })
 ```
 
@@ -156,7 +163,15 @@ Now we'd like to visualize our results, so we'll make a histogram. Let's also ad
 
 ```
 
-If there was no treatment effect, then we'd only observe a difference (treatment - control) of -20% or less about 0.7% of the time. This is so rare, that it provides strong evidence that there is a treatment effect.
+We can count the number of simulated differences as or more extreme than 20% (our observed value) using the `sum()` function:
+
+```{r p-val}
+sum(pHatDiffs >= 0.20)
+```
+
+Divide by the number of simulations to get the approximate p-value!
+
+If there was no treatment effect, then we'd only observe a difference (treatment - control) of 20% or more about 0.7% of the time. This is so rare, that it provides strong evidence that there is a treatment effect.
 
 ## Try It!
 Depending on your instruction method (in person, synchronous remote, asynchronous remote), complete the following exercises collaboratively. 
@@ -207,7 +222,12 @@ Replace this text with your answer to Try It 4.
 
 Replace this text with your answer to Try It 5.
 
-> **60** Using the figure below, estimate the p-value and determine the conclusion of the hypothesis test.
+> **6** Estimate the p-value and determine the conclusion of the hypothesis test.
+
+```{r tryIt6}
+# Replace this comment with code required for Try It 6. (Remember that this text is a comment, so R ignores it; you can delete it if you want.) If you don't delete it, **start your code on a new line that doesn't start with #**
+
+```
 
 Replace this text with your answer to Try It 6.
 
